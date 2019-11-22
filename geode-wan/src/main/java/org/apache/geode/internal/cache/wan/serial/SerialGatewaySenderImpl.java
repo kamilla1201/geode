@@ -53,6 +53,15 @@ public class SerialGatewaySenderImpl extends AbstractRemoteGatewaySender {
 
   @Override
   public void start() {
+    this.start(false);
+  }
+
+  @Override
+  public void startWithCleanQueue() {
+    this.start(true);
+  }
+
+  private void start(boolean cleanQueues) {
     if (logger.isDebugEnabled()) {
       logger.debug("Starting gatewaySender : {}", this);
     }
@@ -80,10 +89,10 @@ public class SerialGatewaySenderImpl extends AbstractRemoteGatewaySender {
       }
       if (getDispatcherThreads() > 1) {
         eventProcessor = new RemoteConcurrentSerialGatewaySenderEventProcessor(
-            SerialGatewaySenderImpl.this, getThreadMonitorObj());
+            SerialGatewaySenderImpl.this, getThreadMonitorObj(), cleanQueues);
       } else {
         eventProcessor = new RemoteSerialGatewaySenderEventProcessor(SerialGatewaySenderImpl.this,
-            getId(), getThreadMonitorObj());
+            getId(), getThreadMonitorObj(), cleanQueues);
       }
       if (isStartEventProcessorInPausedState()) {
         this.pauseEvenIfProcessorStopped();
