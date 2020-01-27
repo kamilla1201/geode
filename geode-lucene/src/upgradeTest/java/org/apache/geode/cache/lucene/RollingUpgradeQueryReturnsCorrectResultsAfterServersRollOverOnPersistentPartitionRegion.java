@@ -14,11 +14,13 @@
  */
 package org.apache.geode.cache.lucene;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class RollingUpgradeQueryReturnsCorrectResultsAfterServersRollOverOnPersistentPartitionRegion
     extends LuceneSearchWithRollingUpgradeDUnit {
 
+  @Ignore
   @Test
   public void luceneQueryReturnsCorrectResultsAfterServersRollOverOnPersistentPartitionRegion()
       throws Exception {
