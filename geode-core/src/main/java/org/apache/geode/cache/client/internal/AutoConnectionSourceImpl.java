@@ -199,12 +199,12 @@ public class AutoConnectionSourceImpl implements ConnectionSource {
     Object returnObj = null;
     try {
       pool.getStats().incLocatorRequests();
-      returnObj = locatorConnection.requestToServer(locator.getSocketInetAddressNoLookup(), request,
+      returnObj = locatorConnection.requestToServer(locator.getSocketInetAddress(), request,
           connectionTimeout, true);
       ServerLocationResponse response = (ServerLocationResponse) returnObj;
       pool.getStats().incLocatorResponses();
       if (response != null) {
-        reportLiveLocator(locator.getSocketInetAddressNoLookup());
+        reportLiveLocator(locator.getSocketInetAddress());
       }
       return response;
     } catch (IOException | ToDataException ioe) {
@@ -212,7 +212,7 @@ public class AutoConnectionSourceImpl implements ConnectionSource {
         logger.warn("Encountered ToDataException when communicating with a locator.  "
             + "This is expected if the locator is shutting down.", ioe);
       }
-      reportDeadLocator(locator.getSocketInetAddressNoLookup(), ioe);
+      reportDeadLocator(locator.getSocketInetAddress(), ioe);
       updateLocatorInLocatorList(locator);
       return null;
     } catch (ClassNotFoundException e) {
@@ -222,7 +222,7 @@ public class AutoConnectionSourceImpl implements ConnectionSource {
       if (logger.isDebugEnabled()) {
         logger.debug("Received odd response object from the locator: {}", returnObj);
       }
-      reportDeadLocator(locator.getSocketInetAddressNoLookup(), e);
+      reportDeadLocator(locator.getSocketInetAddress(), e);
       return null;
     }
   }
@@ -234,14 +234,14 @@ public class AutoConnectionSourceImpl implements ConnectionSource {
    *
    */
   protected void updateLocatorInLocatorList(HostAddress locator) {
-    if (locator.getSocketInetAddressNoLookup().getHostName() != null && !locator.isIpString()) {
+    if (locator.getSocketInetAddress().getHostName() != null && !locator.isIpString()) {
       LocatorList locatorList = locators.get();
       List<HostAddress> newLocatorsList = new ArrayList<>();
 
       for (HostAddress tloc : locatorList.getLocatorAddresses()) {
         if (tloc.equals(locator)) {
           InetSocketAddress changeLoc = new InetSocketAddress(locator.getHostName(),
-              locator.getSocketInetAddressNoLookup().getPort());
+              locator.getSocketInetAddress().getPort());
           HostAddress hostAddress = new HostAddress(changeLoc, locator.getHostName());
           newLocatorsList.add(hostAddress);
         } else {

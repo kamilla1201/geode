@@ -56,16 +56,6 @@ public class HostAddress {
     return port;
   }
 
-  /**
-   * If component has retry logic then use this method to get the InetSocketAddress address
-   * AutoConnectionSourceImpl for client has retry logic; This way client will not make DNS query
-   * each time
-   *
-   */
-  public InetSocketAddress getSocketInetAddressNoLookup() {
-    return this.socketInetAddress;
-  }
-
   @Override
   public int hashCode() {
     int prime = 31;
