@@ -152,7 +152,7 @@ class DependencyConstraints implements Plugin<Project> {
         api(group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0')
         api(group: 'org.slf4j', name: 'slf4j-api', version: get('slf4j-api.version'))
         api(group: 'io.swagger', name: 'swagger-annotations', version: '1.5.23')
-        api(group: 'org.springframework.hateoas', name: 'spring-hateoas', version: '1.0.1.RELEASE')
+        api(group: 'org.springframework.hateoas', name: 'spring-hateoas', version: '0.25.0.RELEASE')
         api(group: 'org.springframework.ldap', name: 'spring-ldap-core', version: '2.3.2.RELEASE')
         api(group: 'org.springframework.shell', name: 'spring-shell', version: '1.2.0.RELEASE')
         api(group: 'pl.pragmatists', name: 'JUnitParams', version: '1.1.0')

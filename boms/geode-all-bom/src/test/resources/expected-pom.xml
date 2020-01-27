@@ -448,7 +448,7 @@
       <dependency>
         <groupId>org.springframework.hateoas</groupId>
         <artifactId>spring-hateoas</artifactId>
-        <version>1.0.1.RELEASE</version>
+        <version>0.25.0.RELEASE</version>
         <scope>compile</scope>
       </dependency>
       <dependency>
