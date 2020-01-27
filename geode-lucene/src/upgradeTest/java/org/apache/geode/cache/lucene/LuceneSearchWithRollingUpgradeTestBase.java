@@ -18,6 +18,7 @@ import static org.apache.geode.test.awaitility.GeodeAwaitility.await;
 import static org.apache.geode.test.dunit.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -265,9 +266,9 @@ public abstract class LuceneSearchWithRollingUpgradeTestBase extends JUnit4Distr
         .loadClass("org.apache.geode.cache.lucene.LuceneServiceProvider");
     Method getLuceneService = luceneServiceProvider.getMethod("get", GemFireCache.class);
     Object luceneService = getLuceneService.invoke(luceneServiceProvider, cache);
-    luceneService.getClass()
+    assertTrue((Boolean) luceneService.getClass()
         .getMethod("waitUntilFlushed", String.class, String.class, long.class, TimeUnit.class)
-        .invoke(luceneService, INDEX_NAME, regionName, 60, TimeUnit.SECONDS);
+        .invoke(luceneService, INDEX_NAME, regionName, 60, TimeUnit.SECONDS));
     Method createLuceneQueryFactoryMethod =
         luceneService.getClass().getMethod("createLuceneQueryFactory");
     createLuceneQueryFactoryMethod.setAccessible(true);
@@ -291,22 +292,26 @@ public abstract class LuceneSearchWithRollingUpgradeTestBase extends JUnit4Distr
   protected Collection executeLuceneQuery(Object luceneQuery)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     Collection results = null;
-    int retryCount = 10;
-    while (true) {
-      try {
-        results = (Collection) luceneQuery.getClass().getMethod("findKeys").invoke(luceneQuery);
-        break;
-      } catch (Exception ex) {
-        if (!ex.getCause().getMessage().contains("currently indexing")) {
-          throw ex;
-        }
-        if (--retryCount == 0) {
-          throw ex;
-        }
+    await().untilAsserted(() -> assertThat(isIndexingFinished(luceneQuery)).isTrue());
+    results = (Collection) luceneQuery.getClass().getMethod("findKeys").invoke(luceneQuery);
+
+    return results;
+  }
+
+  protected boolean isIndexingFinished(Object luceneQuery)
+      throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    boolean success;
+    try {
+      luceneQuery.getClass().getMethod("findKeys").invoke(luceneQuery);
+      success = true;
+    } catch (Exception ex) {
+      if (!ex.getCause().getMessage().contains("currently indexing")) {
+        throw ex;
+      } else {
+        success = false;
       }
     }
-    return results;
-
+    return success;
   }
 
   protected void verifyLuceneQueryResultInEachVM(String regionName, int expectedRegionSize,

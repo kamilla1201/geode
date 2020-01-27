@@ -156,6 +156,7 @@ import org.apache.geode.internal.logging.LocalLogWriter;
 import org.apache.geode.internal.offheap.MemoryAllocator;
 import org.apache.geode.internal.security.SecurityService;
 import org.apache.geode.internal.security.SecurityServiceFactory;
+import org.apache.geode.internal.serialization.Version;
 import org.apache.geode.internal.statistics.StatisticsClock;
 import org.apache.geode.logging.internal.log4j.api.LogService;
 import org.apache.geode.management.internal.JmxManagerAdvisor;
@@ -1057,6 +1058,14 @@ public class CacheCreation implements InternalCache {
   @Override
   public InternalQueryService getQueryService() {
     return queryService;
+  }
+
+  @Override
+  public boolean hasMemberOlderThan(Version version) {
+    return getMembers().stream()
+        .map(InternalDistributedMember.class::cast)
+        .map(InternalDistributedMember::getVersionObject)
+        .anyMatch(v -> v.compareTo(version) < 0);
   }
 
   @Override
