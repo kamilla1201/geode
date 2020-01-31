@@ -45,7 +45,6 @@ import org.apache.geode.cache.EvictionAttributes;
 import org.apache.geode.cache.Operation;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.RegionAttributes;
-import org.apache.geode.cache.RegionDestroyedException;
 import org.apache.geode.cache.Scope;
 import org.apache.geode.cache.TimeoutException;
 import org.apache.geode.cache.asyncqueue.AsyncEvent;
@@ -915,13 +914,14 @@ public class SerialGatewaySenderQueue implements RegionQueue {
             new Object[] {this, this.regionName}),
             e);
       }
-      if ((this.region != null) && this.cleanQueues && this.enablePersistence) {
+      if ((this.region != null) && this.cleanQueues) {
         this.region.clear();
       }
 
     } else {
-      throw new IllegalStateException(
-          "Queue region " + this.regionName + " already exists.");
+      if (this.cleanQueues) {
+        this.region.clear();
+      }
     }
   }
 
@@ -968,15 +968,7 @@ public class SerialGatewaySenderQueue implements RegionQueue {
   }
 
   @Override
-  public void close() {
-    Region r = getRegion();
-    if (r != null && !r.isDestroyed()) {
-      try {
-        r.close();
-      } catch (RegionDestroyedException e) {
-      }
-    }
-  }
+  public void close() {}
 
   private class BatchRemovalThread extends Thread {
     /**
