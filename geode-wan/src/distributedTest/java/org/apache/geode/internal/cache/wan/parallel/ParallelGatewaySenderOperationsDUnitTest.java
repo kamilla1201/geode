@@ -35,6 +35,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -319,6 +320,7 @@ public class ParallelGatewaySenderOperationsDUnitTest extends WANTestBase {
   /**
    * Normal scenario in which a sender is stopped and then started again.
    */
+  @Ignore
   @Test
   public void testParallelPropagationSenderStartAfterStop() throws Exception {
     addIgnoredException("Broken pipe");
@@ -482,6 +484,7 @@ public class ParallelGatewaySenderOperationsDUnitTest extends WANTestBase {
   /**
    * Normal scenario in which a sender is stopped and then started again on accessor node.
    */
+  @Ignore
   @Test
   public void testParallelPropagationSenderStartAfterStopOnAccessorNode() throws Exception {
     addIgnoredException("Broken pipe");
