@@ -539,7 +539,8 @@ public class ConnectionTable {
     }
     // Set the idle timeout
     if (this.owner.idleConnectionTimeout != 0) {
-      logger.info("connection {} waiting for {} milliseconds", conn, this.owner.idleConnectionTimeout);
+      logger.info("connection {} waiting for {} milliseconds", conn,
+          this.owner.idleConnectionTimeout);
       try {
         synchronized (this) {
           if (!this.closed) {
@@ -1151,7 +1152,8 @@ public class ConnectionTable {
       this.preserveOrder = preserveOrder;
       this.id = id;
       this.connectingThread = Thread.currentThread();
-      logger.info("Connection {} is pending on connectingThread {} with preserveOrder {}", this.id, this.connectingThread, this.preserveOrder);
+      logger.info("Connection {} is pending on connectingThread {} with preserveOrder {}", this.id,
+          this.connectingThread, this.preserveOrder);
     }
 
     /**
@@ -1338,7 +1340,8 @@ public class ConnectionTable {
     public ConnectingSocketInfo(InetAddress addr) {
       this.peerAddress = addr;
       this.connectingThread = Thread.currentThread();
-      logger.info("peerddres is {} and connectingThread is {}", this.peerAddress, this.connectingThread);
+      logger.info("peerddres is {} and connectingThread is {}", this.peerAddress,
+          this.connectingThread);
     }
   }
 
