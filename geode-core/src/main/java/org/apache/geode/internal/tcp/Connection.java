@@ -1383,6 +1383,7 @@ public class Connection implements Runnable {
    * Invoking this method ensures that the proper synchronization is done.
    */
   void requestClose(String reason) {
+    logger.info("Request close due to: {}", reason);
     close(reason, true, true, false, false);
   }
 
@@ -1564,9 +1565,7 @@ public class Connection implements Runnable {
 
   /** starts a reader thread */
   private void startReader(ConnectionTable connTable) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Starting thread for " + p2pReaderName());
-    }
+    logger.info("Starting thread for " + p2pReaderName());
     Assert.assertTrue(!this.isRunning);
     stopped = false;
     this.isRunning = true;
@@ -1588,9 +1587,7 @@ public class Connection implements Runnable {
       readMessages();
     } finally {
       // bug36060: do the socket close within a finally block
-      if (logger.isDebugEnabled()) {
-        logger.debug("Stopping {} for {}", p2pReaderName(), remoteAddr);
-      }
+      logger.info("Stopping {} for {}", p2pReaderName(), remoteAddr);
       if (this.isReceiver) {
         try {
           initiateSuspicionIfSharedUnordered();
@@ -1693,9 +1690,7 @@ public class Connection implements Runnable {
 
     if (!stopped) {
       // Assert.assertTrue(owner != null, "How did owner become null");
-      if (logger.isDebugEnabled()) {
-        logger.debug("Starting {} on {}", p2pReaderName(), socket);
-      }
+      logger.info("Starting {} on {}", p2pReaderName(), socket);
     }
     // we should not change the state of the connection if we are a handshake reader thread
     // as there is a race between this thread and the application thread doing direct ack
@@ -1760,13 +1755,12 @@ public class Connection implements Runnable {
           processInputBuffer();
 
           if (!isHandShakeReader && !isReceiver && (handshakeRead || handshakeCancelled)) {
-            if (logger.isDebugEnabled()) {
-              if (handshakeRead) {
-                logger.debug("handshake has been read {}", this);
-              } else {
-                logger.debug("handshake has been cancelled {}", this);
-              }
+            if (handshakeRead) {
+              logger.info("handshake has been read {}", this);
+            } else {
+              logger.info("handshake has been cancelled {}", this);
             }
+
             isHandShakeReader = true;
             notifyHandshakeWaiter(false);
             // Once we have read the handshake the reader can skip processing messages
@@ -1776,9 +1770,7 @@ public class Connection implements Runnable {
 
           }
         } catch (CancelException e) {
-          if (logger.isDebugEnabled()) {
-            logger.debug("{} Terminated <{}> due to cancellation", p2pReaderName(), this, e);
-          }
+          logger.info("{} Terminated <{}> due to cancellation", p2pReaderName(), this, e);
           this.readerShuttingDown = true;
           try {
             requestClose(
@@ -1799,15 +1791,13 @@ public class Connection implements Runnable {
                                                                                      // Solaris jdk
                                                                                      // 1.4.2_08
           ) {
-            if (logger.isDebugEnabled() && !isIgnorableIOException(e)) {
-              logger.debug("{} io exception for {}", p2pReaderName(), this, e);
+            if (!isIgnorableIOException(e)) {
+              logger.info("{} io exception for {}", p2pReaderName(), this, e);
             }
             if (e.getMessage().contains("interrupted by a call to WSACancelBlockingCall")) {
-              if (logger.isDebugEnabled()) {
-                logger.debug(
-                    "{} received unexpected WSACancelBlockingCall exception, which may result in a hang",
-                    p2pReaderName());
-              }
+              logger.info(
+                  "{} received unexpected WSACancelBlockingCall exception, which may result in a hang",
+                  p2pReaderName());
             }
           }
           this.readerShuttingDown = true;
@@ -1821,7 +1811,7 @@ public class Connection implements Runnable {
         } catch (Exception e) {
           this.owner.getConduit().getCancelCriterion().checkCancelInProgress(null); // bug 37101
           if (!stopped && !isSocketClosed()) {
-            logger.fatal(String.format("%s exception in channel read", p2pReaderName()), e);
+            logger.info(String.format("%s exception in channel read", p2pReaderName()), e);
           }
           this.readerShuttingDown = true;
           try {
