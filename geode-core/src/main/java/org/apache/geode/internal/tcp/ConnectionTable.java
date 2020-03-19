@@ -539,7 +539,6 @@ public class ConnectionTable {
     }
     // Set the idle timeout
     if (this.owner.idleConnectionTimeout != 0) {
-      logger.info("connection {} waiting for {} milliseconds", conn, this.owner.idleConnectionTimeout);
       try {
         synchronized (this) {
           if (!this.closed) {
@@ -1151,7 +1150,6 @@ public class ConnectionTable {
       this.preserveOrder = preserveOrder;
       this.id = id;
       this.connectingThread = Thread.currentThread();
-      logger.info("Connection {} is pending on connectingThread {} with preserveOrder {}", this.id, this.connectingThread, this.preserveOrder);
     }
 
     /**
@@ -1299,7 +1297,6 @@ public class ConnectionTable {
     @Override
     public void run2() {
       Connection con = this.c;
-      logger.info("Connection {} waiting for idle timeout", con);
       if (con != null) {
         if (con.checkForIdleTimeout()) {
           cancel();
@@ -1317,7 +1314,6 @@ public class ConnectionTable {
   /** keep track of a socket that is trying to connect() for shutdown purposes */
   public void addConnectingSocket(Socket socket, InetAddress addr) {
     synchronized (connectingSockets) {
-      logger.info("Add socket {} to connectingSockets", socket);
       connectingSockets.put(socket, new ConnectingSocketInfo(addr));
     }
   }
@@ -1325,7 +1321,6 @@ public class ConnectionTable {
   /** remove a socket from the tracked set. It should be connected at this point */
   public void removeConnectingSocket(Socket socket) {
     synchronized (connectingSockets) {
-      logger.info("Remove socket {} to connectingSockets", socket);
       connectingSockets.remove(socket);
     }
   }
@@ -1338,7 +1333,6 @@ public class ConnectionTable {
     public ConnectingSocketInfo(InetAddress addr) {
       this.peerAddress = addr;
       this.connectingThread = Thread.currentThread();
-      logger.info("peerddres is {} and connectingThread is {}", this.peerAddress, this.connectingThread);
     }
   }
 
