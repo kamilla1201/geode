@@ -287,7 +287,7 @@ public class TcpClient {
       sock = socketCreator.connect(ipAddr.getAddress(), ipAddr.getPort(), timeout, null, false);
       sock.setSoTimeout(timeout);
     } catch (SSLException e) {
-      throw new IllegalStateException("Unable to form SSL connection", e);
+      throw new IOException("Unable to form SSL connection", e);
     }
 
     try {
