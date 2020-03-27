@@ -467,7 +467,7 @@ public class LocatorDUnitTest implements Serializable {
 
     // we set port2 so that the state file gets cleaned up later.
     assertThatThrownBy(() -> startLocatorGetPort(vm2, properties, 0))
-        .isInstanceOfAny(IllegalStateException.class, RMIException.class);
+        .isInstanceOfAny(IOException.class, RMIException.class);
     assertThat(Locator.getLocator()).isNull();
 
     vm1.invoke("expectSystemToContainThisManyMembers",
@@ -506,7 +506,7 @@ public class LocatorDUnitTest implements Serializable {
     properties.setProperty(SSL_TRUSTSTORE, getMultiKeyTruststore());
 
     assertThatThrownBy(() -> startLocator(vm2, properties, port2))
-        .isInstanceOfAny(IllegalStateException.class, RMIException.class);
+        .isInstanceOfAny(IOException.class, RMIException.class);
     assertThat(Locator.getLocator()).isNull();
 
     vm1.invoke("expectSystemToContainThisManyMembers",
