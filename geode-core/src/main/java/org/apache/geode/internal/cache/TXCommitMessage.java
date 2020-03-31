@@ -726,24 +726,34 @@ public class TXCommitMessage extends PooledDistributionMessage
   }
 
   private void firePendingCallbacks(List<EntryEventImpl> callbacks) {
+    List<EntryEventImpl> lastTransactionEvents =
+        TXLastEventInTransactionUtils.getLastTransactionEvents(callbacks, dm.getCache());
+
+    Set<EntryEventImpl> setOfLastTransactionEvents = new HashSet(lastTransactionEvents);
     Iterator<EntryEventImpl> ci = callbacks.iterator();
     while (ci.hasNext()) {
       EntryEventImpl ee = ci.next();
+      boolean isLastTransactionEvent = setOfLastTransactionEvents.contains(ee);
       try {
         if (ee.getOperation().isDestroy()) {
-          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_DESTROY, ee, true);
+          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_DESTROY, ee, true,
+              isLastTransactionEvent);
         } else if (ee.getOperation().isInvalidate()) {
-          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_INVALIDATE, ee, true);
+          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_INVALIDATE, ee, true,
+              isLastTransactionEvent);
         } else if (ee.getOperation().isCreate()) {
-          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_CREATE, ee, true);
+          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_CREATE, ee, true,
+              isLastTransactionEvent);
         } else {
-          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_UPDATE, ee, true);
+          ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_UPDATE, ee, true,
+              isLastTransactionEvent);
         }
       } finally {
         ee.release();
       }
     }
   }
+
 
   protected void processCacheRuntimeException(CacheRuntimeException problem) {
     if (problem instanceof RegionDestroyedException) { // catch RegionDestroyedException

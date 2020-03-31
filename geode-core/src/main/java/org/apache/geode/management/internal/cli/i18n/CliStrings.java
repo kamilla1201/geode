@@ -2175,6 +2175,10 @@ public class CliStrings {
       "remote-distributed-system-id";
   public static final String CREATE_GATEWAYSENDER__REMOTEDISTRIBUTEDSYSTEMID__HELP =
       "Id of the remote distributed system to which the sender will send events.";
+  public static final String CREATE_GATEWAYSENDER__GROUPTRANSACTIONEVENTS =
+      "group-transaction-events";
+  public static final String CREATE_GATEWAYSENDER__GROUPTRANSACTIONEVENTS__HELP =
+      "Whether to group the events of a transaction in the same batch. Beware that this sender must replicate the events for all the regions involved in the transaction";
   public static final String CREATE_GATEWAYSENDER__PARALLEL = "parallel";
   public static final String CREATE_GATEWAYSENDER__PARALLEL__HELP =
       "Whether this is Parallel GatewaySender.";

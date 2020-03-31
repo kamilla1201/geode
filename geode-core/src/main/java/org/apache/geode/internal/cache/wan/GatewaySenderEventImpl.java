@@ -27,6 +27,7 @@ import org.apache.geode.cache.CacheEvent;
 import org.apache.geode.cache.CacheFactory;
 import org.apache.geode.cache.Operation;
 import org.apache.geode.cache.Region;
+import org.apache.geode.cache.TransactionId;
 import org.apache.geode.cache.asyncqueue.AsyncEvent;
 import org.apache.geode.cache.util.ObjectSizer;
 import org.apache.geode.cache.wan.EventSequenceID;
@@ -68,7 +69,6 @@ import org.apache.geode.internal.size.Sizeable;
 public class GatewaySenderEventImpl
     implements AsyncEvent, DataSerializableFixedID, Conflatable, Sizeable, Releasable {
   private static final long serialVersionUID = -5690172020872255422L;
-
   protected static final Object TOKEN_NULL = new Object();
 
   // It should use current version. But it was hard-coded to be 0x11, i.e. GEODE_120_ORDINAL,
@@ -181,6 +181,10 @@ public class GatewaySenderEventImpl
 
   private short version;
 
+  private boolean isLastEventInTransaction = true;
+  private TransactionId transactionId = null;
+
+
   /**
    * Is this thread in the process of serializing this event?
    */
@@ -240,18 +244,20 @@ public class GatewaySenderEventImpl
    * @param operation The operation for this event (e.g. AFTER_CREATE)
    * @param event The <code>CacheEvent</code> on which this <code>GatewayEventImpl</code> is based
    * @param substituteValue The value to be enqueued instead of the value in the event.
+   * @param isLastEventInTransaction true if the event is the last in the transaction
    *
    */
   @Retained
   public GatewaySenderEventImpl(EnumListenerEvent operation, CacheEvent event,
-      Object substituteValue) throws IOException {
-    this(operation, event, substituteValue, true);
+      Object substituteValue, boolean isLastEventInTransaction) throws IOException {
+    this(operation, event, substituteValue, true, isLastEventInTransaction);
   }
 
   @Retained
   public GatewaySenderEventImpl(EnumListenerEvent operation, CacheEvent event,
-      Object substituteValue, boolean initialize, int bucketId) throws IOException {
-    this(operation, event, substituteValue, initialize);
+      Object substituteValue, boolean initialize, int bucketId,
+      boolean isLastEventInTransaction) throws IOException {
+    this(operation, event, substituteValue, initialize, isLastEventInTransaction);
     this.bucketId = bucketId;
   }
 
@@ -266,7 +272,7 @@ public class GatewaySenderEventImpl
    */
   @Retained
   public GatewaySenderEventImpl(EnumListenerEvent operation, CacheEvent ce, Object substituteValue,
-      boolean initialize) throws IOException {
+      boolean initialize, boolean isLastEventInTransaction) throws IOException {
     // Set the operation and event
     final EntryEventImpl event = (EntryEventImpl) ce;
     this.operation = operation;
@@ -321,6 +327,10 @@ public class GatewaySenderEventImpl
       initialize();
     }
     this.isConcurrencyConflict = event.isConcurrencyConflict();
+
+    this.transactionId = event.getTransactionId();
+    this.isLastEventInTransaction = isLastEventInTransaction;
+
   }
 
   /**
@@ -349,6 +359,8 @@ public class GatewaySenderEventImpl
     this.valueObjReleased = false;
     this.valueIsObject = offHeapEvent.valueIsObject;
     this.value = offHeapEvent.getSerializedValue();
+    this.transactionId = offHeapEvent.transactionId;
+    this.isLastEventInTransaction = offHeapEvent.isLastEventInTransaction;
   }
 
   /**
@@ -778,8 +790,11 @@ public class GatewaySenderEventImpl
         .append(";creationTime=").append(this.creationTime).append(";shadowKey=")
         .append(this.shadowKey).append(";timeStamp=").append(this.versionTimeStamp)
         .append(";acked=").append(this.isAcked).append(";dispatched=").append(this.isDispatched)
-        .append(";bucketId=").append(this.bucketId).append(";isConcurrencyConflict=")
-        .append(this.isConcurrencyConflict).append("]");
+        .append(";bucketId=").append(this.bucketId)
+        .append(";isConcurrencyConflict=").append(this.isConcurrencyConflict)
+        .append(";transactionId=").append(this.transactionId)
+        .append(";isLastEventInTransaction=").append(this.isLastEventInTransaction)
+        .append("]");
     return builder.toString();
   }
 
@@ -1195,6 +1210,14 @@ public class GatewaySenderEventImpl
    */
   public Long getShadowKey() {
     return this.shadowKey;
+  }
+
+  public boolean isLastEventInTransaction() {
+    return isLastEventInTransaction;
+  }
+
+  public TransactionId getTransactionId() {
+    return transactionId;
   }
 
   public boolean equals(Object obj) {

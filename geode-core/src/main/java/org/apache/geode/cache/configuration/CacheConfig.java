@@ -159,6 +159,7 @@ import org.apache.geode.internal.config.VersionAdapter;
  *                 &lt;attribute name="alert-threshold" type="{http://www.w3.org/2001/XMLSchema}string" />
  *                 &lt;attribute name="dispatcher-threads" type="{http://www.w3.org/2001/XMLSchema}string" />
  *                 &lt;attribute name="order-policy" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *                 &lt;attribute name="group-transaction-events" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *               &lt;/restriction>
  *             &lt;/complexContent>
  *           &lt;/complexType>
@@ -2569,6 +2570,7 @@ public class CacheConfig {
    *       &lt;/sequence>
    *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
    *       &lt;attribute name="remote-distributed-system-id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+   *       &lt;attribute name="group-transaction-events" type="{http://www.w3.org/2001/XMLSchema}boolean" />
    *       &lt;attribute name="parallel" type="{http://www.w3.org/2001/XMLSchema}boolean" />
    *       &lt;attribute name="manual-start" type="{http://www.w3.org/2001/XMLSchema}boolean" />
    *       &lt;attribute name="socket-buffer-size" type="{http://www.w3.org/2001/XMLSchema}string" />
@@ -2607,6 +2609,8 @@ public class CacheConfig {
     protected String id;
     @XmlAttribute(name = "remote-distributed-system-id", required = true)
     protected String remoteDistributedSystemId;
+    @XmlAttribute(name = "group-transaction-events")
+    protected Boolean groupTransactionEvents;
     @XmlAttribute(name = "parallel")
     protected Boolean parallel;
     @XmlAttribute(name = "manual-start")
@@ -2760,6 +2764,15 @@ public class CacheConfig {
      */
     public void setRemoteDistributedSystemId(String value) {
       this.remoteDistributedSystemId = value;
+    }
+
+    public Boolean isGroupTransactionEvents() {
+      return groupTransactionEvents;
+    }
+
+
+    public void setGroupTransactionEvents(Boolean value) {
+      this.groupTransactionEvents = value;
     }
 
     /**
