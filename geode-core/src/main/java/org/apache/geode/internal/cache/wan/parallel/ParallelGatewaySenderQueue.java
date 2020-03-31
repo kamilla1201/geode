@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.logging.log4j.Logger;
@@ -54,6 +55,7 @@ import org.apache.geode.cache.PartitionAttributesFactory;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.RegionAttributes;
 import org.apache.geode.cache.RegionDestroyedException;
+import org.apache.geode.cache.TransactionId;
 import org.apache.geode.cache.asyncqueue.internal.AsyncEventQueueImpl;
 import org.apache.geode.distributed.internal.DistributionManager;
 import org.apache.geode.distributed.internal.InternalDistributedSystem;
@@ -1262,6 +1264,7 @@ public class ParallelGatewaySenderQueue implements RegionQueue {
     addPeekedEvents(batch, batchSize);
 
     int bId = -1;
+    Map<TransactionId, Integer> incompleteTransactionsInBatch = new HashMap<>();
     while (batch.size() < batchSize) {
       if (areLocalBucketQueueRegionsPresent() && ((bId = getRandomPrimaryBucket(prQ)) != -1)) {
         GatewaySenderEventImpl object = (GatewaySenderEventImpl) peekAhead(prQ, bId);
@@ -1281,35 +1284,27 @@ public class ParallelGatewaySenderQueue implements RegionQueue {
             logger.debug("The gatewayEventImpl in peek is {}", object);
           }
           batch.add(object);
+          if (object.getTransactionId() != null) {
+            if (object.isLastEventInTransaction()) {
+              incompleteTransactionsInBatch.remove(object.getTransactionId());
+            } else {
+              incompleteTransactionsInBatch.put(object.getTransactionId(), bId);
+            }
+          }
           peekedEvents.add(object);
 
         } else {
-          // If time to wait is -1 (don't wait) or time interval has elapsed
           long currentTime = System.currentTimeMillis();
-          if (isDebugEnabled) {
-            logger.debug("{}: Peeked object was null. Peek current time: {}", this, currentTime);
-          }
-          if (timeToWait == -1 || (end <= currentTime)) {
-            if (isDebugEnabled) {
-              logger.debug("{}: Peeked object was null.. Peek breaking", this);
-            }
+          if (stopPeekingDueToTime(currentTime, timeToWait, end)) {
             break;
           }
           if (isDebugEnabled) {
             logger.debug("{}: Peeked object was null. Peek continuing", this);
           }
-          continue;
         }
       } else {
-        // If time to wait is -1 (don't wait) or time interval has elapsed
         long currentTime = System.currentTimeMillis();
-        if (isDebugEnabled) {
-          logger.debug("{}: Peek current time: {}", this, currentTime);
-        }
-        if (timeToWait == -1 || (end <= currentTime)) {
-          if (isDebugEnabled) {
-            logger.debug("{}: Peek breaking", this);
-          }
+        if (stopPeekingDueToTime(currentTime, timeToWait, end)) {
           break;
         }
         if (isDebugEnabled) {
@@ -1322,17 +1317,85 @@ public class ParallelGatewaySenderQueue implements RegionQueue {
           Thread.currentThread().interrupt();
           break;
         }
-        continue;
       }
     }
+
+    if (batch.size() > 0) {
+      peekEventsFromIncompleteTransactions(batch, incompleteTransactionsInBatch, prQ);
+    }
+
     if (isDebugEnabled) {
       logger.debug("{}: Peeked a batch of {} entries. The size of the queue is {}. localSize is {}",
           this, batch.size(), size(), localSize());
     }
+
     if (batch.size() == 0) {
       blockProcessorThreadIfRequired();
     }
     return batch;
+  }
+
+  private boolean stopPeekingDueToTime(long currentTime, int timeToWait, long end) {
+    final boolean isDebugEnabled = logger.isDebugEnabled();
+    // If time to wait is -1 (don't wait) or time interval has elapsed
+    if (isDebugEnabled) {
+      logger.debug("{}: Peek current time: {}", this, currentTime);
+    }
+    if (timeToWait == -1 || (end <= currentTime)) {
+      if (isDebugEnabled) {
+        logger.debug("{}: Peek breaking", this);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  protected boolean isGroupTransactionEvents() {
+    return sender.isGroupTransactionEvents();
+  }
+
+  private void peekEventsFromIncompleteTransactions(List<GatewaySenderEventImpl> batch,
+      Map<TransactionId, Integer> incompleteTransactionIdsInBatch, PartitionedRegion prQ) {
+    if (!isGroupTransactionEvents()) {
+      return;
+    }
+
+    if (areAllTransactionsCompleteInBatch(incompleteTransactionIdsInBatch)) {
+      return;
+    }
+
+    int maxRetries = 2;
+    for (Map.Entry<TransactionId, Integer> pendingTransaction : incompleteTransactionIdsInBatch
+        .entrySet()) {
+      TransactionId transactionId = pendingTransaction.getKey();
+      int bucketId = pendingTransaction.getValue().intValue();
+      boolean presentLastEventInTransaction = false;
+      int retries = 0;
+      while (!presentLastEventInTransaction && ++retries <= maxRetries) {
+        List<Object> events = peekEventsWithTransactionId(prQ, bucketId, transactionId);
+        for (Object object : events) {
+          GatewaySenderEventImpl event = (GatewaySenderEventImpl) object;
+          batch.add(event);
+          peekedEvents.add(event);
+          presentLastEventInTransaction = event.isLastEventInTransaction();
+
+          if (logger.isDebugEnabled()) {
+            logger.debug(
+                "Peeking extra event: {}, bucketId: {}, isLastEventInTransaction: {}, batch size: {}",
+                event.getKey(), bucketId, event.isLastEventInTransaction(), batch.size());
+          }
+        }
+      }
+      if (retries >= maxRetries) {
+        logger.warn("Not able to retrieve all events for transaction {} after {} retries",
+            transactionId, retries);
+      }
+    }
+  }
+
+  private boolean areAllTransactionsCompleteInBatch(Map incompleteTransactions) {
+    return (incompleteTransactions.size() == 0);
+
   }
 
   private long getTimeToSleep(long timeToWait) {
@@ -1460,6 +1523,28 @@ public class ParallelGatewaySenderQueue implements RegionQueue {
     return object; // OFFHEAP: ok since callers are careful to do destroys on region queue after
                    // finished with peeked object.
   }
+
+  protected List<Object> peekEventsWithTransactionId(PartitionedRegion prQ, int bucketId,
+      TransactionId transactionId) throws CacheException {
+    List<Object> objects;
+    BucketRegionQueue brq = getBucketRegionQueueByBucketId(prQ, bucketId);
+
+    try {
+      Predicate<GatewaySenderEventImpl> hasTransactionIdPredicate =
+          x -> x.getTransactionId().equals(transactionId);
+      Predicate<GatewaySenderEventImpl> isLastEventInTransactionPredicate =
+          x -> x.isLastEventInTransaction();
+      objects =
+          brq.getElementsMatching(hasTransactionIdPredicate, isLastEventInTransactionPredicate);
+    } catch (BucketRegionQueueUnavailableException e) {
+      // BucketRegionQueue unavailable. Can be due to the BucketRegionQueue being destroyed.
+      return Collections.emptyList();
+    }
+
+    return objects; // OFFHEAP: ok since callers are careful to do destroys on region queue after
+    // finished with peeked objects.
+  }
+
 
   protected BucketRegionQueue getBucketRegionQueueByBucketId(final PartitionedRegion prQ,
       final int bucketId) {

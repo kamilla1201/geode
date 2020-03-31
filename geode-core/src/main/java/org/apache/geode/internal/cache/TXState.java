@@ -224,15 +224,26 @@ public class TXState implements TXStateInterface {
   }
 
   public void firePendingCallbacks() {
-    for (EntryEventImpl ee : getPendingCallbacks()) {
+    List<EntryEventImpl> lastTransactionEvents =
+        TXLastEventInTransactionUtils.getLastTransactionEvents(getPendingCallbacks(), getCache());
+
+    Set<EntryEventImpl> setOfLastTransactionEvents = new HashSet(lastTransactionEvents);
+    Iterator<EntryEventImpl> ci = getPendingCallbacks().iterator();
+    while (ci.hasNext()) {
+      EntryEventImpl ee = ci.next();
+      boolean isLastTransactionEvent = setOfLastTransactionEvents.contains(ee);
       if (ee.getOperation().isDestroy()) {
-        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_DESTROY, ee, true);
+        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_DESTROY, ee, true,
+            isLastTransactionEvent);
       } else if (ee.getOperation().isInvalidate()) {
-        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_INVALIDATE, ee, true);
+        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_INVALIDATE, ee, true,
+            isLastTransactionEvent);
       } else if (ee.getOperation().isCreate()) {
-        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_CREATE, ee, true);
+        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_CREATE, ee, true,
+            isLastTransactionEvent);
       } else {
-        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_UPDATE, ee, true);
+        ee.getRegion().invokeTXCallbacks(EnumListenerEvent.AFTER_UPDATE, ee, true,
+            isLastTransactionEvent);
       }
     }
   }

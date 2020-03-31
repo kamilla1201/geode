@@ -225,6 +225,14 @@ public class AsyncEventQueueFactoryImpl implements AsyncEventQueueFactory {
         gatewaySenderAttributes.policy = GatewaySender.DEFAULT_ORDER_POLICY;
       }
 
+      if (gatewaySenderAttributes.isGroupTransactionEvents() &&
+          gatewaySenderAttributes.getDispatcherThreads() > 1) {
+        throw new AsyncEventQueueConfigurationException(
+            String.format(
+                "AsyncEventQueue %s can not be created with group-transaction-events and dispatcher threads greater than 1",
+                id));
+      }
+
       if (cache instanceof CacheCreation) {
         sender = new SerialAsyncEventQueueCreation(cache, gatewaySenderAttributes);
       } else {
@@ -232,6 +240,9 @@ public class AsyncEventQueueFactoryImpl implements AsyncEventQueueFactory {
             cache.getInternalDistributedSystem().getStatisticsManager(), cache.getStatisticsClock(),
             gatewaySenderAttributes);
       }
+
+
+
       cache.addGatewaySender(sender);
     }
     return sender;
@@ -257,6 +268,8 @@ public class AsyncEventQueueFactoryImpl implements AsyncEventQueueFactory {
     gatewaySenderAttributes.isForInternalUse = true;
     gatewaySenderAttributes.forwardExpirationDestroy =
         asyncQueueCreation.isForwardExpirationDestroy();
+    gatewaySenderAttributes.isGroupTransactionEvents =
+        asyncQueueCreation.isGroupTransactionEvents();
   }
 
   @Override

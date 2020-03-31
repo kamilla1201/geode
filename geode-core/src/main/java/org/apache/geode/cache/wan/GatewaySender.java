@@ -143,6 +143,8 @@ public interface GatewaySender {
 
   boolean DEFAULT_IS_PARALLEL = false;
 
+  boolean DEFAULT_IS_GROUP_TRANSACTION_EVENTS = false;
+
   boolean DEFAULT_IS_FOR_INTERNAL_USE = false;
 
   /**
@@ -391,6 +393,7 @@ public interface GatewaySender {
    */
   boolean isParallel();
 
+  boolean isGroupTransactionEvents();
 
   /**
    * Returns the number of dispatcher threads working for this <code>GatewaySender</code>. Default

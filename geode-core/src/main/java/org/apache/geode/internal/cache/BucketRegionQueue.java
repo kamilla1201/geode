@@ -28,6 +28,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import org.apache.logging.log4j.Logger;
 
@@ -441,6 +442,46 @@ public class BucketRegionQueue extends AbstractBucketRegionQueue {
       }
       return object; // OFFHEAP: ok since callers are careful to do destroys on
                      // region queue after finished with peeked object.
+    } finally {
+      getInitializationLock().readLock().unlock();
+    }
+  }
+
+  /**
+   * This method returns a list of objects that fulfill the matchingPredicate.
+   * If a matching object also fulfills the endPredicate then the method
+   * stops looking for more matching objects.
+   */
+  public List<Object> getElementsMatching(Predicate matchingPredicate, Predicate endPredicate) {
+    Object key = null;
+    Object object = null;
+    List<Object> elementsMatching = new ArrayList<Object>();
+    List<Object> keysOfElementsMatching = new ArrayList<Object>();
+    // doing peek in initializationLock because during region destroy, the clearQueues
+    // clears the eventSeqNumQueue and can cause data inconsistency (defect #48984)
+    getInitializationLock().readLock().lock();
+    try {
+      if (this.getPartitionedRegion().isDestroyed()) {
+        throw new BucketRegionQueueUnavailableException();
+      }
+      Iterator<Object> it = this.eventSeqNumDeque.iterator();
+      while (it.hasNext()) {
+        key = it.next();
+        object = optimalGet(key);
+        if (matchingPredicate.test(object)) {
+          elementsMatching.add(object);
+          keysOfElementsMatching.add(key);
+          if (endPredicate.test(object)) {
+            break;
+          }
+        }
+      }
+      for (Object tmpKey : keysOfElementsMatching) {
+        this.eventSeqNumDeque.remove(tmpKey);
+      }
+
+      return elementsMatching; // OFFHEAP: ok since callers are careful to do destroys on
+      // region queue after finished with peeked object.
     } finally {
       getInitializationLock().readLock().unlock();
     }

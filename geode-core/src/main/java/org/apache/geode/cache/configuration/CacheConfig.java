@@ -31,10 +31,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Element;
 
 import org.apache.geode.annotations.Experimental;
 import org.apache.geode.internal.config.VersionAdapter;
+import org.apache.geode.logging.internal.log4j.api.LogService;
 
 /**
  * <p>
@@ -145,6 +147,7 @@ import org.apache.geode.internal.config.VersionAdapter;
  *                 &lt;/sequence>
  *                 &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *                 &lt;attribute name="remote-distributed-system-id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *                 &lt;attribute name="group-transaction-events" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *                 &lt;attribute name="parallel" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *                 &lt;attribute name="manual-start" type="{http://www.w3.org/2001/XMLSchema}boolean" />
  *                 &lt;attribute name="socket-buffer-size" type="{http://www.w3.org/2001/XMLSchema}string" />
@@ -2569,6 +2572,7 @@ public class CacheConfig {
    *       &lt;/sequence>
    *       &lt;attribute name="id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
    *       &lt;attribute name="remote-distributed-system-id" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+   *       &lt;attribute name="group-transaction-events" type="{http://www.w3.org/2001/XMLSchema}boolean" />
    *       &lt;attribute name="parallel" type="{http://www.w3.org/2001/XMLSchema}boolean" />
    *       &lt;attribute name="manual-start" type="{http://www.w3.org/2001/XMLSchema}boolean" />
    *       &lt;attribute name="socket-buffer-size" type="{http://www.w3.org/2001/XMLSchema}string" />
@@ -2594,6 +2598,8 @@ public class CacheConfig {
   @XmlType(name = "", propOrder = {"gatewayEventFilters", "gatewayEventSubstitutionFilter",
       "gatewayTransportFilters"})
   public static class GatewaySender {
+    protected static final Logger logger = LogService.getLogger();
+
 
     @XmlElement(name = "gateway-event-filter", namespace = "http://geode.apache.org/schema/cache")
     protected List<DeclarableType> gatewayEventFilters;
@@ -2607,6 +2613,8 @@ public class CacheConfig {
     protected String id;
     @XmlAttribute(name = "remote-distributed-system-id", required = true)
     protected String remoteDistributedSystemId;
+    @XmlAttribute(name = "group-transaction-events")
+    protected Boolean groupTransactionEvents;
     @XmlAttribute(name = "parallel")
     protected Boolean parallel;
     @XmlAttribute(name = "manual-start")
@@ -2760,6 +2768,15 @@ public class CacheConfig {
      */
     public void setRemoteDistributedSystemId(String value) {
       this.remoteDistributedSystemId = value;
+    }
+
+    public Boolean isGroupTransactionEvents() {
+      return groupTransactionEvents;
+    }
+
+
+    public void setGroupTransactionEvents(Boolean value) {
+      this.groupTransactionEvents = value;
     }
 
     /**

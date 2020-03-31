@@ -174,6 +174,11 @@ public class AsyncEventQueueImpl implements InternalAsyncEventQueue {
     return sender.isParallel();
   }
 
+  @Override
+  public boolean isGroupTransactionEvents() {
+    return sender.isGroupTransactionEvents();
+  }
+
   public boolean isMetaQueue() {
     return sender.getIsMetaQueue();
   }

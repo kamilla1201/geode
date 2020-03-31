@@ -35,6 +35,8 @@ public interface GatewaySenderFactory {
    */
   GatewaySenderFactory setParallel(boolean isParallel);
 
+  GatewaySenderFactory setGroupTransactionEvents(boolean isGroupTransactionEvents);
+
   /**
    * Adds a <code>GatewayEventFilter</code>
    *
