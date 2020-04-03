@@ -102,8 +102,6 @@ public interface AsyncEventQueue {
    */
   boolean isParallel();
 
-  boolean isGroupTransactionEvents();
-
   /**
    * Returns the number of dispatcher threads working for this <code>AsyncEventQueue</code>. Default
    * number of dispatcher threads is 5.

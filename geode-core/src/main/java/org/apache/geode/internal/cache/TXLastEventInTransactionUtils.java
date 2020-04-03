@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.Logger;
 
 import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.wan.GatewaySender;
 import org.apache.geode.logging.internal.log4j.api.LogService;
 
 public class TXLastEventInTransactionUtils {
@@ -67,8 +68,13 @@ public class TXLastEventInTransactionUtils {
 
   private static boolean checkNoSendersGroupTransactionEvents(List<EntryEventImpl> callbacks,
       Cache cache) {
-    for (Object senderId : getSenderIdsForEvents(callbacks)) {
-      if (cache.getGatewaySender((String) senderId).isGroupTransactionEvents()) {
+    for (String senderId : getSenderIdsForEvents(callbacks)) {
+      GatewaySender sender = cache.getGatewaySender(senderId);
+      if (sender == null) {
+        logger.error("No sender found for {}", senderId);
+        return false;
+      }
+      if (sender.isGroupTransactionEvents()) {
         return false;
       }
     }
@@ -77,8 +83,13 @@ public class TXLastEventInTransactionUtils {
 
   private static boolean checkAllSendersGroupTransactionEvents(List<EntryEventImpl> callbacks,
       Cache cache) {
-    for (Object senderId : getSenderIdsForEvents(callbacks)) {
-      if (!cache.getGatewaySender((String) senderId).isGroupTransactionEvents()) {
+    for (String senderId : getSenderIdsForEvents(callbacks)) {
+      GatewaySender sender = cache.getGatewaySender(senderId);
+      if (sender == null) {
+        logger.error("No sender found for {}", senderId);
+        return false;
+      }
+      if (!sender.isGroupTransactionEvents()) {
         return false;
       }
     }

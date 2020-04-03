@@ -2257,15 +2257,7 @@ public class CacheXmlParser extends CacheXml implements ContentHandler {
     } else {
       asyncEventQueueCreation.setParallel(Boolean.parseBoolean(parallel));
     }
-    // group-transaction-events
-    String groupTransactionEvents = atts.getValue(GROUP_TRANSACTION_EVENTS);
-    if (groupTransactionEvents == null) {
-      asyncEventQueueCreation
-          .setGroupTransactionEvents(GatewaySender.DEFAULT_IS_GROUP_TRANSACTION_EVENTS);
-    } else {
-      asyncEventQueueCreation
-          .setGroupTransactionEvents(Boolean.parseBoolean(groupTransactionEvents));
-    }
+
     // batch-size
     String batchSize = atts.getValue(BATCH_SIZE);
     if (batchSize == null) {

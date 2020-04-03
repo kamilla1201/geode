@@ -38,7 +38,6 @@ public class AsyncEventQueueCreation implements AsyncEventQueue {
   private boolean isDiskSynchronous = false;
   private int maxQueueMemory = 0;
   private boolean isParallel = false;
-  private boolean isGroupTransactionEvents = false;
   private boolean isBucketSorted = false;
   private int dispatcherThreads = 1;
   private OrderPolicy orderPolicy = OrderPolicy.KEY;
@@ -65,8 +64,6 @@ public class AsyncEventQueueCreation implements AsyncEventQueue {
     this.gatewayEventFilters = senderAttrs.eventFilters;
     this.gatewayEventSubstitutionFilter = senderAttrs.eventSubstitutionFilter;
     this.forwardExpirationDestroy = senderAttrs.forwardExpirationDestroy;
-    this.isGroupTransactionEvents = senderAttrs.isGroupTransactionEvents;
-
   }
 
   @Override
@@ -181,10 +178,6 @@ public class AsyncEventQueueCreation implements AsyncEventQueue {
     this.isParallel = isParallel;
   }
 
-  public void setGroupTransactionEvents(boolean isGroupTransactionEvents) {
-    this.isGroupTransactionEvents = isGroupTransactionEvents;
-  }
-
   @Override
   public int getDispatcherThreads() {
     return this.dispatcherThreads;
@@ -226,11 +219,6 @@ public class AsyncEventQueueCreation implements AsyncEventQueue {
   @Override
   public boolean isParallel() {
     return this.isParallel;
-  }
-
-  @Override
-  public boolean isGroupTransactionEvents() {
-    return this.isGroupTransactionEvents;
   }
 
   public boolean isBucketSorted() {

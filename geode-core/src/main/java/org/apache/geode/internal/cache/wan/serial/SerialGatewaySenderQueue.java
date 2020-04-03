@@ -354,7 +354,7 @@ public class SerialGatewaySenderQueue implements RegionQueue {
 
   @Override
   public Object peek() throws CacheException {
-    KeyAndObjectPair object = peekAhead();
+    KeyAndEventPair object = peekAhead();
     if (logger.isTraceEnabled()) {
       logger.trace("{}: Peeked {} -> {}", this, peekedIds, object);
     }
@@ -384,7 +384,7 @@ public class SerialGatewaySenderQueue implements RegionQueue {
     Set<TransactionId> incompleteTransactionsInBatch = new HashSet<>();
     long lastKey = -1;
     while (batch.size() < size) {
-      KeyAndObjectPair pair = peekAhead();
+      KeyAndEventPair pair = peekAhead();
       // Conflate here
       if (pair != null) {
         AsyncEvent object = pair.event;
@@ -477,7 +477,7 @@ public class SerialGatewaySenderQueue implements RegionQueue {
     }
   }
 
-  private boolean isGroupTransactionEvents() {
+  protected boolean isGroupTransactionEvents() {
     return sender.isGroupTransactionEvents();
   }
 
@@ -722,17 +722,17 @@ public class SerialGatewaySenderQueue implements RegionQueue {
     return object;
   }
 
-  class KeyAndObjectPair {
+  class KeyAndEventPair {
     public final long key;
     public final AsyncEvent event;
 
-    KeyAndObjectPair(Long key, AsyncEvent event) {
+    KeyAndEventPair(Long key, AsyncEvent event) {
       this.key = key;
       this.event = event;
     }
   }
 
-  private KeyAndObjectPair peekAhead() throws CacheException {
+  private KeyAndEventPair peekAhead() throws CacheException {
     AsyncEvent object = null;
     Long currentKey = getCurrentKey();
     if (currentKey == null) {
@@ -770,7 +770,7 @@ public class SerialGatewaySenderQueue implements RegionQueue {
 
     if (object != null) {
       this.peekedIds.add(currentKey);
-      return new KeyAndObjectPair(currentKey, object);
+      return new KeyAndEventPair(currentKey, object);
     }
     return null;
   }

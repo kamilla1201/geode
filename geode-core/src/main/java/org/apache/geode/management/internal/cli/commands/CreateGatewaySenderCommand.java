@@ -293,7 +293,7 @@ public class CreateGatewaySenderCommand extends SingleGfshCommand {
       if (!parallel && dispatcherThreads != null && dispatcherThreads > 1
           && isGroupTransactionEvents) {
         return ResultModel.createError(
-            "Serial Gateway Sender can not be created with --group-transaction-events when --dispatcher-threads is larger than 1.");
+            "Serial Gateway Sender cannot be created with --group-transaction-events when --dispatcher-threads is greater than 1.");
       }
 
       return ResultModel.createInfo("");
