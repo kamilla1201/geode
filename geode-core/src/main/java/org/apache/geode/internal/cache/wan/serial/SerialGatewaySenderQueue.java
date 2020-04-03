@@ -477,7 +477,7 @@ public class SerialGatewaySenderQueue implements RegionQueue {
     }
   }
 
-  private boolean isGroupTransactionEvents() {
+  protected boolean isGroupTransactionEvents() {
     return sender.isGroupTransactionEvents();
   }
 
