@@ -149,9 +149,9 @@ public class SerialGatewaySenderQueue implements RegionQueue {
   private boolean isDiskSynchronous;
 
   /**
-   * The writeLock of this concurrent lock is used to protect access to the queue.
-   * It is implemented as a fair lock to ensure FIFO ordering of queueing attempts.
-   * Otherwise threads can be unfairly delayed.
+   * The writeLock of this concurrent lock is used to protect access to the queue. It is implemented
+   * as a fair lock to ensure FIFO ordering of queueing attempts. Otherwise threads can be unfairly
+   * delayed.
    */
   private ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 
@@ -187,12 +187,20 @@ public class SerialGatewaySenderQueue implements RegionQueue {
 
   private AbstractGatewaySender sender = null;
 
+  private MetaRegionFactory metaRegionFactory;
+
   public SerialGatewaySenderQueue(AbstractGatewaySender abstractSender, String regionName,
       CacheListener listener, boolean cleanQueues) {
+    this(abstractSender, regionName, listener, new MetaRegionFactory(), cleanQueues);
+  }
+
+  public SerialGatewaySenderQueue(AbstractGatewaySender abstractSender, String regionName,
+      CacheListener listener, MetaRegionFactory metaRegionFactory, boolean cleanQueues) {
     // The queue starts out with headKey and tailKey equal to -1 to force
     // them to be initialized from the region.
     this.regionName = regionName;
     this.cleanQueues = cleanQueues;
+    this.metaRegionFactory = metaRegionFactory;
 
     this.headKey = -1;
     this.tailKey.set(-1);
@@ -1012,8 +1020,8 @@ public class SerialGatewaySenderQueue implements RegionQueue {
       final RegionAttributes<Long, AsyncEvent> ra = factory.create();
       try {
         SerialGatewaySenderQueueMetaRegion meta =
-            new SerialGatewaySenderQueueMetaRegion(this.regionName, ra, null, gemCache, sender,
-                sender.getStatisticsClock());
+            metaRegionFactory.newMetaRegion(gemCache, this.regionName, ra, sender);
+
         try {
           this.region = gemCache.createVMRegion(this.regionName, ra,
               new InternalRegionArguments().setInternalMetaRegion(meta).setDestroyLockFlag(true)
@@ -1054,7 +1062,8 @@ public class SerialGatewaySenderQueue implements RegionQueue {
     }
   }
 
-  private void addOverflowStatisticsToMBean(Cache cache, AbstractGatewaySender sender) {
+  @VisibleForTesting
+  protected void addOverflowStatisticsToMBean(Cache cache, AbstractGatewaySender sender) {
     // Get the appropriate mbean and add the overflow stats to it
     LocalRegion lr = (LocalRegion) this.region;
     ManagementService service = ManagementService.getManagementService(cache);
@@ -1360,6 +1369,18 @@ public class SerialGatewaySenderQueue implements RegionQueue {
         // in the sender queue or occurs in the the future.
         GatewaySenderEventImpl.release(event.getRawOldValue());
       }
+    }
+  }
+
+  static class MetaRegionFactory {
+    SerialGatewaySenderQueueMetaRegion newMetaRegion(InternalCache cache,
+        final String regionName,
+        final RegionAttributes ra,
+        AbstractGatewaySender sender) {
+      SerialGatewaySenderQueueMetaRegion meta =
+          new SerialGatewaySenderQueueMetaRegion(regionName, ra, null, cache, sender,
+              sender.getStatisticsClock());
+      return meta;
     }
   }
 
