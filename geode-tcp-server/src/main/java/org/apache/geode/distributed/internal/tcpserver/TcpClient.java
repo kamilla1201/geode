@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 
 import org.apache.logging.log4j.Logger;
 
@@ -267,6 +268,13 @@ public class TcpClient {
     try {
       sock = socketCreator.connect(ipAddr.getAddress(), ipAddr.getPort(), timeout, null, false);
       sock.setSoTimeout(timeout);
+    } catch (SSLHandshakeException e) {
+      if ((e.getCause() instanceof EOFException)
+          && (e.getCause().getMessage().contains("SSL peer shut down incorrectly"))) {
+        throw new IOException("Remote host terminated the handshake", e);
+      } else {
+        throw new IllegalStateException("Unable to form SSL connection", e);
+      }
     } catch (SSLException e) {
       throw new IllegalStateException("Unable to form SSL connection", e);
     }
