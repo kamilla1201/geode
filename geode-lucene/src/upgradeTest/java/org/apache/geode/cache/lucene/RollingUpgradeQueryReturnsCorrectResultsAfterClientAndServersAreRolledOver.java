@@ -93,7 +93,7 @@ public class RollingUpgradeQueryReturnsCorrectResultsAfterClientAndServersAreRol
       expectedRegionSize += 10;
       putSerializableObject(client, regionName, 20, 30);
       expectedRegionSize += 10;
-      putSerializableObject(server3, regionName,30,40);
+      putSerializableObject(server3, regionName, 30, 40);
 
       server2 = rollServerToCurrentCreateLuceneIndexAndCreateRegion(server2, regionType, null,
           shortcut.name(), regionName, locatorPorts, reindex);
@@ -101,7 +101,7 @@ public class RollingUpgradeQueryReturnsCorrectResultsAfterClientAndServersAreRol
       expectedRegionSize += 10;
       putSerializableObject(client, regionName, 40, 50);
       expectedRegionSize += 10;
-      putSerializableObject(server2, regionName,50,60);
+      putSerializableObject(server2, regionName, 50, 60);
 
       client = rollClientToCurrentAndCreateRegion(client, ClientRegionShortcut.PROXY, regionName,
           hostNames, locatorPorts, false, singleHopEnabled);
