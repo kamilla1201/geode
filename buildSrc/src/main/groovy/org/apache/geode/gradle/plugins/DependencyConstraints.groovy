@@ -42,7 +42,7 @@ class DependencyConstraints implements Plugin<Project> {
     deps.put("jgroups.version", "3.6.14.Final")
     deps.put("log4j.version", "2.12.1")
     deps.put("micrometer.version", "1.2.1")
-    deps.put("shiro.version", "1.4.1")
+    deps.put("shiro.version", "1.4.2")
     deps.put("slf4j-api.version", "1.7.28")
 
     // These version numbers are used in testing various versions of tomcat and are consumed explicitly
@@ -57,7 +57,7 @@ class DependencyConstraints implements Plugin<Project> {
 
     // The jetty version is also hard-coded in geode-assembly:test
     // at o.a.g.sessions.tests.GenericAppServerInstall.java
-    deps.put("jetty.version", "9.4.21.v20190926")
+    deps.put("jetty.version", "9.4.24.v20191120")
 
     // These version numbers are consumed by protobuf configurations that are plugin-specific and not
     // part of the typical Gradle dependency configurations.
@@ -164,7 +164,7 @@ class DependencyConstraints implements Plugin<Project> {
       }
     }
 
-    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.10.0') {
+    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.10.2') {
       entry('jackson-annotations')
       entry('jackson-core')
       entry('jackson-databind')
