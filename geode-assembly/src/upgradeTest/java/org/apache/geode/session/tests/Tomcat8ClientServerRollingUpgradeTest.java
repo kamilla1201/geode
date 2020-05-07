@@ -26,6 +26,7 @@ import org.apache.commons.lang3.JavaVersion;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -50,6 +51,7 @@ import org.apache.geode.test.version.VersionManager;
  * This test iterates through the versions of Geode and executes session client compatibility with
  * the current version of Geode.
  */
+@Ignore
 @Category({BackwardCompatibilityTest.class})
 @RunWith(Parameterized.class)
 @Parameterized.UseParametersRunnerFactory(CategoryWithParameterizedRunnerFactory.class)
