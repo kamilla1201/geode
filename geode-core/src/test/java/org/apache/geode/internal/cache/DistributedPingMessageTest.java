@@ -42,7 +42,8 @@ public class DistributedPingMessageTest {
     final ClientProxyMembershipID proxyID = new ClientProxyMembershipID(clientDistributedMember);
     final DistributedPingMessage message =
         new DistributedPingMessage(dummyDistributedMember, proxyID);
-    assertTrue(message.toString().matches("DistributedPingMessage@.*; proxyId=identity\\(localhost<.*>:2.*"));
+    assertTrue(message.toString()
+        .matches("DistributedPingMessage@.*; proxyId=identity\\(localhost<.*>:2.*"));
   }
 
   @Test
