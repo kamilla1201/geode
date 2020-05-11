@@ -131,15 +131,19 @@ public class CreateGatewaySenderCommand extends SingleGfshCommand {
           help = CliStrings.CREATE_GATEWAYSENDER__GATEWAYEVENTFILTER__HELP) String[] gatewayEventFilters,
 
       @CliOption(key = CliStrings.CREATE_GATEWAYSENDER__GATEWAYTRANSPORTFILTER,
-          help = CliStrings.CREATE_GATEWAYSENDER__GATEWAYTRANSPORTFILTER__HELP) String[] gatewayTransportFilter) {
+          help = CliStrings.CREATE_GATEWAYSENDER__GATEWAYTRANSPORTFILTER__HELP) String[] gatewayTransportFilter,
+
+      @CliOption(key = CliStrings.CREATE_GATEWAYSENDER__RECEIVERS_SHARING_IP_AND_PORT,
+          specifiedDefaultValue = "true",
+          unspecifiedDefaultValue = "false",
+          help = CliStrings.CREATE_GATEWAYSENDER__RECEIVERS_SHARING_IP_AND_PORT__HELP) Boolean receiversSharingIpAndPort) {
 
     CacheConfig.GatewaySender configuration =
         buildConfiguration(id, remoteDistributedSystemId, parallel, manualStart,
             socketBufferSize, socketReadTimeout, enableBatchConflation, batchSize,
             batchTimeInterval, enablePersistence, diskStoreName, diskSynchronous, maxQueueMemory,
             alertThreshold, dispatcherThreads, orderPolicy == null ? null : orderPolicy.name(),
-            gatewayEventFilters, gatewayTransportFilter);
-
+            gatewayEventFilters, gatewayTransportFilter, receiversSharingIpAndPort);
     GatewaySenderFunctionArgs gatewaySenderFunctionArgs =
         new GatewaySenderFunctionArgs(configuration);
     Set<DistributedMember> membersToCreateGatewaySenderOn = getMembers(onGroups, onMember);
@@ -220,7 +224,8 @@ public class CreateGatewaySenderCommand extends SingleGfshCommand {
       Integer dispatcherThreads,
       String orderPolicy,
       String[] gatewayEventFilters,
-      String[] gatewayTransportFilters) {
+      String[] gatewayTransportFilters,
+      Boolean receiverSharingIpAndPort) {
     CacheConfig.GatewaySender sender = new CacheConfig.GatewaySender();
     sender.setId(id);
     sender.setRemoteDistributedSystemId(int2string(remoteDSId));
@@ -244,7 +249,7 @@ public class CreateGatewaySenderCommand extends SingleGfshCommand {
     if (gatewayTransportFilters != null) {
       sender.getGatewayTransportFilters().addAll(stringsToDeclarableTypes(gatewayTransportFilters));
     }
-
+    sender.setReceiversSharingIpAndPort(receiverSharingIpAndPort);
     return sender;
   }
 
@@ -269,6 +274,9 @@ public class CreateGatewaySenderCommand extends SingleGfshCommand {
           (OrderPolicy) parseResult.getParamValue(CliStrings.CREATE_GATEWAYSENDER__ORDERPOLICY);
       Integer dispatcherThreads =
           (Integer) parseResult.getParamValue(CliStrings.CREATE_GATEWAYSENDER__DISPATCHERTHREADS);
+      Boolean receiversSharingIpAndPort =
+          (Boolean) parseResult
+              .getParamValue(CliStrings.CREATE_GATEWAYSENDER__RECEIVERS_SHARING_IP_AND_PORT);
 
       if (dispatcherThreads != null && dispatcherThreads > 1 && orderPolicy == null) {
         return ResultModel.createError(
@@ -278,6 +286,14 @@ public class CreateGatewaySenderCommand extends SingleGfshCommand {
       if (parallel && orderPolicy == OrderPolicy.THREAD) {
         return ResultModel.createError(
             "Parallel Gateway Sender can not be created with THREAD OrderPolicy");
+      }
+
+      if (parallel && receiversSharingIpAndPort) {
+        return ResultModel
+            .createError(
+                "Option --" + CliStrings.CREATE_GATEWAYSENDER__RECEIVERS_SHARING_IP_AND_PORT
+                    + " only applies to serial gateway senders.");
+
       }
 
       return ResultModel.createInfo("");

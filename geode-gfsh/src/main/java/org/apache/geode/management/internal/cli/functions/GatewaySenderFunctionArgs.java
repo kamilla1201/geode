@@ -45,6 +45,7 @@ public class GatewaySenderFunctionArgs implements Serializable {
   // array of fully qualified class names of the filters
   private final List<String> gatewayEventFilters;
   private final List<String> gatewayTransportFilters;
+  private final Boolean receiversSharingIpAndPort;
 
   public GatewaySenderFunctionArgs(CacheConfig.GatewaySender sender) {
     this.id = sender.getId();
@@ -75,6 +76,7 @@ public class GatewaySenderFunctionArgs implements Serializable {
                 .stream().map(DeclarableType::getClassName)
                 .collect(Collectors.toList()))
             .orElse(null);
+    this.receiversSharingIpAndPort = sender.getReceiversSharingIpAndPort();
   }
 
   private Integer string2int(String x) {
@@ -151,5 +153,9 @@ public class GatewaySenderFunctionArgs implements Serializable {
 
   public List<String> getGatewayTransportFilter() {
     return this.gatewayTransportFilters;
+  }
+
+  public Boolean getReceiversSharingIpAndPort() {
+    return this.receiversSharingIpAndPort;
   }
 }
