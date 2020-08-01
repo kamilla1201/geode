@@ -25,33 +25,33 @@ static_resources:
                 stat_prefix: example_tcp
                 cluster: servers-dolores
 
-clusters:
-  - name: "locators-maeve"
-    connect_timeout: 1s
-    type: STRICT_DNS
-    dns_refresh_rate: 120s
-    dns_lookup_family: V4_ONLY
-    load_assignment:
-      cluster_name: "locators-maeve"
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: "geode"
-                    port_value: 10344
+  clusters:
+    - name: "locators-maeve"
+      connect_timeout: 1s
+      type: STRICT_DNS
+      dns_refresh_rate: 120s
+      dns_lookup_family: V4_ONLY
+      load_assignment:
+        cluster_name: "locators-maeve"
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: "geode"
+                      port_value: 10334
 
-  - name: "servers-dolores"
-    connect_timeout: 1s
-    type: STRICT_DNS
-    dns_refresh_rate: 120s
-    dns_lookup_family: V4_ONLY
-    load_assignment:
-      cluster_name: "servers-dolores"
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: "geode"
-                    port_value: 40404
+    - name: "servers-dolores"
+      connect_timeout: 1s
+      type: STRICT_DNS
+      dns_refresh_rate: 120s
+      dns_lookup_family: V4_ONLY
+      load_assignment:
+        cluster_name: "servers-dolores"
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: "geode"
+                      port_value: 40404

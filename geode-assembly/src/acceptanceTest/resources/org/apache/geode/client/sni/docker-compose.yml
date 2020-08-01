@@ -38,7 +38,7 @@ services:
     networks:
       geode-sni-test:
     volumes:
-      - ./envoy.yaml:/usr/local/etc/envoy/envoy.yaml:ro
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
 networks:
   geode-sni-test:
 
