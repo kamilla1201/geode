@@ -278,7 +278,7 @@ public class SocketCreator extends TcpSocketCreatorImpl {
     SSLContext newSSLContext = SSLUtil.getSSLContextInstance(sslConfig);
     KeyManager[] keyManagers = getKeyManagers();
     TrustManager[] trustManagers = getTrustManagers();
-
+    LogService.getLogger().info("SocketCreator kamilla: " + newSSLContext.getProtocol());
     newSSLContext.init(keyManagers, trustManagers, null /* use the default secure random */);
     return newSSLContext;
   }

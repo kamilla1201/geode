@@ -28,9 +28,11 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import mx4j.log.Logger;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.geode.annotations.VisibleForTesting;
+import org.apache.geode.logging.internal.log4j.api.LogService;
 
 public class SSLUtil {
   /**
@@ -98,6 +100,7 @@ public class SSLUtil {
         return SSLContext.getDefault();
       }
       SSLContext ssl = getSSLContextInstance(sslConfig);
+      LogService.getLogger().info("SSLUtil kamilla: " + ssl.getProtocol());
 
       KeyManager[] keyManagers = getKeyManagers(sslConfig);
       TrustManager[] trustManagers = getTrustManagers(sslConfig, skipSslVerification);
