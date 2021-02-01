@@ -887,10 +887,63 @@ public class GMSJoinLeaveJUnitTest {
     initMocks();
     becomeCoordinatorForTest(gmsJoinLeave);
     NetworkPartitionMessage message = new NetworkPartitionMessage();
+    message.setSender(gmsJoinLeaveMemberId);
     gmsJoinLeave.processMessage(message);
     verify(manager).forceDisconnect(isA(String.class));
   }
 
+  // Possibly modify test to check for network partition message in the force disconnect
+  @Test
+  public void testNetworkPartitionMessageCheckSenderView() throws Exception {
+    initMocks();
+    List<MemberIdentifier> members = createMemberList(mockMembers[1], mockMembers[2]);
+    gmsJoinLeaveMemberId.setVmViewId(1);
+    members.add(gmsJoinLeaveMemberId);
+    prepareAndInstallView(gmsJoinLeaveMemberId, members);
+
+    becomeCoordinatorForTest(gmsJoinLeave);
+    NetworkPartitionMessage message = new NetworkPartitionMessage();
+    mockMembers[0].setVmViewId(0);
+    mockMembers[0].setVmKind(MemberIdentifier.LOCATOR_DM_TYPE);
+    message.setSender(mockMembers[0]);
+    gmsJoinLeave.processMessage(message);
+    verify(manager, never()).forceDisconnect(isA(String.class));
+  }
+
+  // Possibly modify test to check for network partition message in the force disconnect
+  @Test
+  public void testNetworkPartitionMessageCheckSenderView2() throws Exception {
+    initMocks();
+    List<MemberIdentifier> members = createMemberList(mockMembers[1], mockMembers[2]);
+    gmsJoinLeaveMemberId.setVmViewId(1);
+    members.add(gmsJoinLeaveMemberId);
+    prepareAndInstallView(gmsJoinLeaveMemberId, members);
+
+    becomeCoordinatorForTest(gmsJoinLeave);
+    NetworkPartitionMessage message = new NetworkPartitionMessage();
+    mockMembers[0].setVmViewId(1);
+    message.setSender(mockMembers[0]);
+    gmsJoinLeave.processMessage(message);
+    verify(manager).forceDisconnect(isA(String.class));
+  }
+
+  // Possibly modify test to check for network partition message in the force disconnect
+  @Test
+  public void testNetworkPartitionMessageCheckSenderView3() throws Exception {
+    initMocks();
+    List<MemberIdentifier> members =
+        createMemberList(mockMembers[0], mockMembers[1], mockMembers[2]);
+    gmsJoinLeaveMemberId.setVmViewId(1);
+    members.add(gmsJoinLeaveMemberId);
+    prepareAndInstallView(gmsJoinLeaveMemberId, members);
+
+    becomeCoordinatorForTest(gmsJoinLeave);
+    NetworkPartitionMessage message = new NetworkPartitionMessage();
+    mockMembers[0].setVmViewId(0);
+    message.setSender(mockMembers[0]);
+    gmsJoinLeave.processMessage(message);
+    verify(manager).forceDisconnect(isA(String.class));
+  }
 
   @Test
   public void testQuorumLossNotificationWithNetworkPartitionDetectionDisabled() throws Exception {
